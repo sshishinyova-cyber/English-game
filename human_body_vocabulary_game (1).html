@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Body - Vocabulary Quiz (A2 Level)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for sound synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#6C5CE7',
+                            pink: '#FD79A8',
+                            yellow: '#FDCB6E',
+                            blue: '#0984E3',
+                            green: '#00B894',
+                            dark: '#2D3436',
+                            bg: '#F0F3F8'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #F0F3F8;
+            touch-action: manipulation;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* SVG Hotspots styling */
+        .body-part-hotspot {
+            cursor: pointer;
+            fill: #6C5CE7;
+            fill-opacity: 0.18;
+            stroke: #6C5CE7;
+            stroke-width: 2;
+            stroke-dasharray: 4, 4;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .body-part-hotspot:hover {
+            fill: #FD79A8;
+            fill-opacity: 0.45;
+            stroke: #FD79A8;
+            stroke-dasharray: none;
+            stroke-width: 3;
+            transform: scale(1.04);
+            transform-origin: center;
+        }
+
+        .hotspot-label {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            fill: #334155;
+            font-size: 11px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Pulse animation for timer warning */
+        @keyframes timer-pulse {
+            0%, 100% { transform: scale(1); color: #EF4444; }
+            50% { transform: scale(1.15); color: #DC2626; }
+        }
+        .animate-timer-pulse {
+            animation: timer-pulse 0.6s infinite ease-in-out;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #E2E8F0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #A0AEC0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between selection:bg-brand-pink selection:text-white">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-brand-purple to-brand-pink text-white w-10 h-10 rounded-2xl flex items-center justify-center text-xl shadow-md font-heading">
+                    <i class="fa-solid fa-child"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight text-slate-800">Body Vocab Master</h1>
+                    <p class="text-xs text-slate-500 font-semibold" id="level-badge-header">English Level A2 &bull; Level 1</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button id="sound-btn" onclick="toggleSound()" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center" title="Toggle Audio">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="resetGame()" class="px-3 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Restart
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow flex flex-col justify-center">
+
+        <!-- START SCREEN -->
+        <div id="start-screen" class="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-slate-100 text-center max-w-2xl mx-auto my-auto">
+            <div class="w-24 h-24 bg-brand-purple/10 text-brand-purple rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner">
+                <i class="fa-solid fa-child-reaching"></i>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold mb-3 text-slate-800">Human Body Challenge</h2>
+            <p class="text-slate-600 mb-6 text-base md:text-lg">
+                Identify body parts on a realistic diagram! You have <span class="font-bold text-amber-500">60 seconds</span> and <span class="font-bold text-rose-500">3 lives</span> per level.
+            </p>
+
+            <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-8 text-left">
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xl font-bold text-brand-purple">2 Levels</span>
+                    <span class="text-xs font-semibold text-slate-500">30 Words</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xl font-bold text-rose-500">3 Hearts</span>
+                    <span class="text-xs font-semibold text-slate-500">Lives Limit</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xl font-bold text-amber-500">60 sec</span>
+                    <span class="text-xs font-semibold text-slate-500">Timer</span>
+                </div>
+            </div>
+
+            <button onclick="startGame(1)" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-brand-purple to-brand-pink text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition duration-200">
+                Start Level 1 <i class="fa-solid fa-play ml-2"></i>
+            </button>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="hidden flex-col gap-5">
+
+            <!-- HUD Stats Header -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                
+                <!-- Level Indicator -->
+                <div class="flex items-center gap-2">
+                    <span id="current-level-tag" class="px-3 py-1 bg-brand-purple text-white text-xs font-bold rounded-lg uppercase tracking-wider">Level 1</span>
+                    <span id="question-counter" class="text-sm font-bold text-slate-600">1/15</span>
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                    <i class="fa-solid fa-clock text-amber-500"></i>
+                    <span id="timer-display" class="font-extrabold text-slate-800 text-base">60s</span>
+                </div>
+
+                <!-- Lives Counter -->
+                <div class="flex items-center gap-1 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-xl">
+                    <span class="text-xs font-bold text-rose-400 mr-1 uppercase">Lives:</span>
+                    <div id="lives-container" class="flex items-center gap-1 text-rose-500 text-lg">
+                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                </div>
+
+                <!-- Streak & Score -->
+                <div class="flex items-center gap-3">
+                    <div class="text-xs font-bold text-slate-500">
+                        <i class="fa-solid fa-fire text-amber-500"></i> <span id="streak-count">0</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-amber-500 text-sm"></i>
+                        <span id="score-display" class="font-extrabold text-slate-800 text-base">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Word Banner -->
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-5 text-white text-center shadow-lg relative overflow-hidden">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Find & Click on the body part:</div>
+                <div class="flex justify-center items-center gap-3">
+                    <h2 id="target-word" class="text-3xl md:text-5xl font-black text-amber-400 tracking-wide font-heading uppercase">
+                        HEAD
+                    </h2>
+                    <button onclick="speakCurrentWord()" class="bg-slate-700/70 hover:bg-slate-600 text-slate-200 w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95" title="Listen to pronunciation">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+                
+                <!-- Feedback Overlay Alert -->
+                <div id="feedback-banner" class="hidden absolute inset-0 flex items-center justify-center text-lg md:text-xl font-bold font-heading z-20 backdrop-blur-sm transition-all duration-200">
+                    <span id="feedback-text" class="px-6 py-2.5 rounded-2xl shadow-xl flex items-center gap-2"></span>
+                </div>
+            </div>
+
+            <!-- Interactive Realistic Body Diagram Section -->
+            <div class="bg-white rounded-3xl p-3 md:p-6 shadow-lg border border-slate-200 flex flex-col items-center justify-center relative min-h-[500px]">
+                
+                <p class="text-xs text-slate-400 mb-1 font-semibold md:hidden">
+                    <i class="fa-solid fa-hand-pointer mr-1"></i> Tap on the correct body area
+                </p>
+
+                <!-- SVG Container for Realistic Human Body Diagram -->
+                <div class="relative w-full max-w-[420px] h-auto flex justify-center">
+                    <svg viewBox="0 0 400 680" class="w-full h-auto max-h-[620px] drop-shadow-md select-none" xmlns="http://www.w3.org/2000/svg">
+                        
+                        <!-- Definitions for Gradients -->
+                        <defs>
+                            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#F1D5C3"/>
+                                <stop offset="50%" stop-color="#E2B79D"/>
+                                <stop offset="100%" stop-color="#CFA285"/>
+                            </linearGradient>
+                            <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#4A3525"/>
+                                <stop offset="100%" stop-color="#2C1D11"/>
+                            </linearGradient>
+                            <linearGradient id="shortsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3B82F6"/>
+                                <stop offset="100%" stop-color="#1D4ED8"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Realistic Anatomical Body Model -->
+                        <g id="realistic-body">
+                            <!-- Shadow -->
+                            <ellipse cx="200" cy="655" rx="85" ry="12" fill="#CBD5E1" opacity="0.6"/>
+
+                            <!-- Hair (Back) -->
+                            <path d="M 172,62 C 170,25 230,25 228,62 Z" fill="url(#hairGrad)"/>
+
+                            <!-- Head & Ears -->
+                            <ellipse cx="166" cy="65" rx="6" ry="10" fill="#D9A88F"/>
+                            <ellipse cx="234" cy="65" rx="6" ry="10" fill="#D9A88F"/>
+                            <path d="M 168,65 C 168,32 232,32 232,65 C 232,98 215,108 200,108 C 185,108 168,98 168,65 Z" fill="url(#skinGrad)"/>
+                            
+                            <!-- Eyes, Eyebrows & Mouth Subtle Details -->
+                            <path d="M 180,50 Q 187,47 192,51" stroke="#332211" stroke-width="2" fill="none"/>
+                            <path d="M 208,51 Q 213,47 220,50" stroke="#332211" stroke-width="2" fill="none"/>
+                            <circle cx="186" cy="58" r="2.5" fill="#332211"/>
+                            <circle cx="214" cy="58" r="2.5" fill="#332211"/>
+                            <path d="M 197,63 L 200,72 L 203,63" stroke="#C48B6C" stroke-width="1.5" fill="none"/> <!-- Nose -->
+                            <path d="M 188,85 Q 200,93 212,85" stroke="#B05B5B" stroke-width="2.5" fill="none"/> <!-- Smile -->
+
+                            <!-- Neck -->
+                            <path d="M 187,105 L 185,124 Q 200,128 215,124 L 213,105 Z" fill="url(#skinGrad)"/>
+                            <path d="M 192,108 Q 200,118 208,108" stroke="#D39A7E" stroke-width="1.5" fill="none"/> <!-- Neck line -->
+
+                            <!-- Shoulders & Collarbones -->
+                            <path d="M 185,124 C 160,128 138,142 130,165 L 148,172 C 158,155 175,142 190,138 Z" fill="url(#skinGrad)"/>
+                            <path d="M 215,124 C 240,128 262,142 270,165 L 252,172 C 242,155 225,142 210,138 Z" fill="url(#skinGrad)"/>
+                            <path d="M 185,130 Q 198,136 200,136 Q 202,136 215,130" stroke="#C48B6C" stroke-width="2" fill="none"/> <!-- Collarbone -->
+
+                            <!-- Torso / Chest / Stomach -->
+                            <path d="M 148,165 C 145,210 150,260 155,300 L 245,300 C 250,260 255,210 252,165 C 230,158 170,158 148,165 Z" fill="url(#skinGrad)"/>
+                            <!-- Chest contour / Pectorals & Ribs lines -->
+                            <path d="M 155,188 Q 175,200 200,200 Q 225,200 245,188" stroke="#D39A7E" stroke-width="2" fill="none"/>
+                            <path d="M 200,195 L 200,285" stroke="#D39A7E" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/> <!-- Midline -->
+                            <circle cx="200" cy="270" r="3" fill="#B88265"/> <!-- Navel -->
+                            <path d="M 160,230 Q 175,242 190,242" stroke="#D39A7E" stroke-width="1.5" fill="none"/> <!-- Rib accent -->
+                            <path d="M 240,230 Q 225,242 210,242" stroke="#D39A7E" stroke-width="1.5" fill="none"/>
+
+                            <!-- Athletic Shorts (Hips & Pelvis) -->
+                            <path d="M 153,295 L 247,295 L 252,360 L 205,360 L 200,345 L 195,360 L 148,360 Z" fill="url(#shortsGrad)"/>
+
+                            <!-- Left Arm (Deltoid, Biceps, Forearm, Hand) -->
+                            <path d="M 130,165 C 118,200 112,240 108,280 C 105,310 102,330 96,350 L 115,354 C 122,332 125,308 128,280 C 132,242 138,205 148,172 Z" fill="url(#skinGrad)"/>
+                            <ellipse cx="119" cy="245" rx="10" ry="12" fill="none" stroke="#D39A7E" stroke-width="1"/> <!-- Elbow crease -->
+                            <!-- Left Hand & Fingers -->
+                            <path d="M 96,350 Q 90,365 88,382 C 87,392 98,394 102,384 L 115,354 Z" fill="url(#skinGrad)"/>
+
+                            <!-- Right Arm (Deltoid, Biceps, Forearm, Hand) -->
+                            <path d="M 270,165 C 282,200 288,240 292,280 C 295,310 298,330 304,350 L 285,354 C 278,332 275,308 272,280 C 268,242 262,205 252,172 Z" fill="url(#skinGrad)"/>
+                            <ellipse cx="281" cy="245" rx="10" ry="12" fill="none" stroke="#D39A7E" stroke-width="1"/>
+                            <!-- Right Hand & Fingers -->
+                            <path d="M 304,350 Q 310,365 312,382 C 313,392 302,394 298,384 L 285,354 Z" fill="url(#skinGrad)"/>
+
+                            <!-- Left Leg (Thigh, Knee, Calf, Shin, Foot) -->
+                            <path d="M 152,360 C 150,420 152,470 155,500 C 152,545 142,590 138,625 L 172,625 C 178,590 182,545 180,500 C 182,470 192,420 195,360 Z" fill="url(#skinGrad)"/>
+                            <ellipse cx="167" cy="495" rx="12" ry="10" fill="none" stroke="#C48B6C" stroke-width="2"/> <!-- Knee cap -->
+                            <!-- Left Foot -->
+                            <path d="M 138,625 C 132,635 115,642 110,645 C 110,652 125,654 145,652 C 168,650 172,640 172,625 Z" fill="url(#skinGrad)"/>
+
+                            <!-- Right Leg (Thigh, Knee, Calf, Shin, Foot) -->
+                            <path d="M 248,360 C 250,420 248,470 245,500 C 248,545 258,590 262,625 L 228,625 C 222,590 218,545 220,500 C 218,470 208,420 205,360 Z" fill="url(#skinGrad)"/>
+                            <ellipse cx="233" cy="495" rx="12" ry="10" fill="none" stroke="#C48B6C" stroke-width="2"/> <!-- Knee cap -->
+                            <!-- Right Foot -->
+                            <path d="M 262,625 C 268,635 285,642 290,645 C 290,652 275,654 255,652 C 232,650 228,640 228,625 Z" fill="url(#skinGrad)"/>
+                        </g>
+
+                        <!-- CLICKABLE HOTSPOTS GROUP -->
+                        <g id="hotspots-group">
+
+                            <!-- LEVEL 1 HOTSPOTS (15 Words) -->
+                            <g id="level1-hotspots">
+                                <!-- 1. HEAD -->
+                                <g onclick="handlePartClick('head')" class="group">
+                                    <circle cx="200" cy="62" r="38" class="body-part-hotspot" />
+                                    <text x="200" y="18" text-anchor="middle" class="hotspot-label">Head</text>
+                                </g>
+
+                                <!-- 2. NECK -->
+                                <g onclick="handlePartClick('neck')" class="group">
+                                    <rect x="180" y="102" width="40" height="22" rx="8" class="body-part-hotspot" />
+                                    <text x="250" y="115" text-anchor="start" class="hotspot-label">Neck</text>
+                                    <line x1="222" y1="112" x2="245" y2="112" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 3. SHOULDER -->
+                                <g onclick="handlePartClick('shoulder')" class="group">
+                                    <circle cx="260" cy="148" r="22" class="body-part-hotspot" />
+                                    <text x="325" y="152" text-anchor="start" class="hotspot-label">Shoulder</text>
+                                    <line x1="284" y1="148" x2="320" y2="148" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 4. CHEST -->
+                                <g onclick="handlePartClick('chest')" class="group">
+                                    <rect x="160" y="165" width="80" height="48" rx="12" class="body-part-hotspot" />
+                                    <text x="200" y="193" text-anchor="middle" class="hotspot-label">Chest</text>
+                                </g>
+
+                                <!-- 5. BACK -->
+                                <g onclick="handlePartClick('back')" class="group">
+                                    <path d="M 135,165 C 132,195 142,225 146,245 C 138,225 140,185 145,165 Z" class="body-part-hotspot" />
+                                    <text x="75" y="180" text-anchor="end" class="hotspot-label">Back</text>
+                                    <line x1="138" y1="180" x2="80" y2="180" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 6. ELBOW -->
+                                <g onclick="handlePartClick('elbow')" class="group">
+                                    <circle cx="282" cy="245" r="18" class="body-part-hotspot" />
+                                    <text x="340" y="250" text-anchor="start" class="hotspot-label">Elbow</text>
+                                    <line x1="302" y1="245" x2="335" y2="245" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 7. STOMACH -->
+                                <g onclick="handlePartClick('stomach')" class="group">
+                                    <rect x="162" y="222" width="76" height="52" rx="14" class="body-part-hotspot" />
+                                    <text x="200" y="252" text-anchor="middle" class="hotspot-label">Stomach</text>
+                                </g>
+
+                                <!-- 8. HIP -->
+                                <g onclick="handlePartClick('hip')" class="group">
+                                    <circle cx="248" cy="315" r="22" class="body-part-hotspot" />
+                                    <text x="315" y="320" text-anchor="start" class="hotspot-label">Hip</text>
+                                    <line x1="272" y1="315" x2="310" y2="315" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 9. WRIST -->
+                                <g onclick="handlePartClick('wrist')" class="group">
+                                    <circle cx="102" cy="338" r="16" class="body-part-hotspot" />
+                                    <text x="45" y="342" text-anchor="end" class="hotspot-label">Wrist</text>
+                                    <line x1="84" y1="338" x2="50" y2="338" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 10. THUMB -->
+                                <g onclick="handlePartClick('thumb')" class="group">
+                                    <circle cx="88" cy="365" r="13" class="body-part-hotspot" />
+                                    <text x="35" y="375" text-anchor="end" class="hotspot-label">Thumb</text>
+                                    <line x1="74" y1="368" x2="40" y2="375" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 11. FINGER -->
+                                <g onclick="handlePartClick('finger')" class="group">
+                                    <circle cx="312" cy="378" r="15" class="body-part-hotspot" />
+                                    <text x="355" y="388" text-anchor="start" class="hotspot-label">Finger</text>
+                                    <line x1="328" y1="380" x2="350" y2="385" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 12. KNEE -->
+                                <g onclick="handlePartClick('knee')" class="group">
+                                    <circle cx="167" cy="495" r="22" class="body-part-hotspot" />
+                                    <text x="95" y="500" text-anchor="end" class="hotspot-label">Knee</text>
+                                    <line x1="143" y1="495" x2="100" y2="495" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 13. ANKLE -->
+                                <g onclick="handlePartClick('ankle')" class="group">
+                                    <circle cx="250" cy="590" r="18" class="body-part-hotspot" />
+                                    <text x="315" y="595" text-anchor="start" class="hotspot-label">Ankle</text>
+                                    <line x1="270" y1="590" x2="310" y2="590" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 14. HEEL -->
+                                <g onclick="handlePartClick('heel')" class="group">
+                                    <circle cx="148" cy="635" r="16" class="body-part-hotspot" />
+                                    <text x="80" y="640" text-anchor="end" class="hotspot-label">Heel</text>
+                                    <line x1="130" y1="635" x2="85" y2="640" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+
+                                <!-- 15. TOE -->
+                                <g onclick="handlePartClick('toe')" class="group">
+                                    <circle cx="282" cy="646" r="16" class="body-part-hotspot" />
+                                    <text x="335" y="650" text-anchor="start" class="hotspot-label">Toe</text>
+                                    <line x1="300" y1="646" x2="330" y2="650" stroke="#94A3B8" stroke-width="1.2" />
+                                </g>
+                            </g>
+
+                            <!-- LEVEL 2 HOTSPOTS (15 Harder Words) -->
+                            <g id="level2-hotspots" class="hidden">
+                                <!-- 1. FOREHEAD -->
+                                <g onclick="handlePartClick('forehead')" class="group">
+                                    <rect x="175" y="38" width="50" height="20" rx="6" class="body-part-hotspot" />
+                                    <text x="260" y="48" text-anchor="start" class="hotspot-label">Forehead</text>
+                                    <line x1="228" y1="48" x2="255" y2="48" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 2. CHIN -->
+                                <g onclick="handlePartClick('chin')" class="group">
+                                    <circle cx="200" cy="98" r="12" class="body-part-hotspot" />
+                                    <text x="255" y="100" text-anchor="start" class="hotspot-label">Chin</text>
+                                    <line x1="214" y1="98" x2="250" y2="100" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 3. COLLARBONE -->
+                                <g onclick="handlePartClick('collarbone')" class="group">
+                                    <rect x="165" y="128" width="70" height="16" rx="6" class="body-part-hotspot" />
+                                    <text x="110" y="132" text-anchor="end" class="hotspot-label">Collarbone</text>
+                                    <line x1="162" y1="132" x2="115" y2="132" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 4. RIB -->
+                                <g onclick="handlePartClick('rib')" class="group">
+                                    <ellipse cx="225" cy="215" rx="22" ry="14" class="body-part-hotspot" />
+                                    <text x="290" y="218" text-anchor="start" class="hotspot-label">Rib</text>
+                                    <line x1="248" y1="215" x2="285" y2="218" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 5. WAIST -->
+                                <g onclick="handlePartClick('waist')" class="group">
+                                    <rect x="156" y="270" width="88" height="25" rx="8" class="body-part-hotspot" />
+                                    <text x="90" y="282" text-anchor="end" class="hotspot-label">Waist</text>
+                                    <line x1="154" y1="282" x2="95" y2="282" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 6. THIGH -->
+                                <g onclick="handlePartClick('thigh')" class="group">
+                                    <rect x="210" y="375" width="38" height="75" rx="12" class="body-part-hotspot" />
+                                    <text x="295" y="410" text-anchor="start" class="hotspot-label">Thigh</text>
+                                    <line x1="250" y1="410" x2="290" y2="410" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 7. CALF -->
+                                <g onclick="handlePartClick('calf')" class="group">
+                                    <ellipse cx="152" cy="545" rx="16" ry="32" class="body-part-hotspot" />
+                                    <text x="80" y="550" text-anchor="end" class="hotspot-label">Calf</text>
+                                    <line x1="134" y1="545" x2="85" y2="550" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 8. SHIN -->
+                                <g onclick="handlePartClick('shin')" class="group">
+                                    <rect x="226" y="525" width="22" height="50" rx="8" class="body-part-hotspot" />
+                                    <text x="295" y="550" text-anchor="start" class="hotspot-label">Shin</text>
+                                    <line x1="250" y1="550" x2="290" y2="550" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 9. PALM -->
+                                <g onclick="handlePartClick('palm')" class="group">
+                                    <circle cx="98" cy="365" r="14" class="body-part-hotspot" />
+                                    <text x="40" y="368" text-anchor="end" class="hotspot-label">Palm</text>
+                                    <line x1="82" y1="365" x2="45" y2="368" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 10. KNUCKLE -->
+                                <g onclick="handlePartClick('knuckle')" class="group">
+                                    <circle cx="302" cy="368" r="12" class="body-part-hotspot" />
+                                    <text x="350" y="370" text-anchor="start" class="hotspot-label">Knuckle</text>
+                                    <line x1="316" y1="368" x2="345" y2="370" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 11. FINGERNAIL -->
+                                <g onclick="handlePartClick('fingernail')" class="group">
+                                    <circle cx="310" cy="388" r="10" class="body-part-hotspot" />
+                                    <text x="355" y="398" text-anchor="start" class="hotspot-label">Fingernail</text>
+                                    <line x1="322" y1="388" x2="350" y2="395" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 12. SOLE -->
+                                <g onclick="handlePartClick('sole')" class="group">
+                                    <ellipse cx="255" cy="650" rx="20" ry="10" class="body-part-hotspot" />
+                                    <text x="315" y="652" text-anchor="start" class="hotspot-label">Sole</text>
+                                    <line x1="278" y1="650" x2="310" y2="652" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 13. SPINE -->
+                                <g onclick="handlePartClick('spine')" class="group">
+                                    <rect x="194" y="160" width="12" height="110" rx="4" class="body-part-hotspot" />
+                                    <text x="135" y="215" text-anchor="end" class="hotspot-label">Spine</text>
+                                    <line x1="192" y1="215" x2="140" y2="215" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 14. ARMPIT -->
+                                <g onclick="handlePartClick('armpit')" class="group">
+                                    <circle cx="252" cy="182" r="15" class="body-part-hotspot" />
+                                    <text x="315" y="185" text-anchor="start" class="hotspot-label">Armpit</text>
+                                    <line x1="268" y1="182" x2="310" y2="185" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+
+                                <!-- 15. TEMPLE -->
+                                <g onclick="handlePartClick('temple')" class="group">
+                                    <circle cx="222" cy="55" r="12" class="body-part-hotspot" />
+                                    <text x="270" y="58" text-anchor="start" class="hotspot-label">Temple</text>
+                                    <line x1="235" y1="55" x2="265" y2="58" stroke="#94A3B8" stroke-width="1.2"/>
+                                </g>
+                            </g>
+
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- END RESULTS SCREEN -->
+        <div id="end-screen" class="hidden bg-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-100 my-auto">
+            <div class="text-center max-w-xl mx-auto mb-6">
+                <div id="result-badge" class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-sm">
+                    <i id="result-icon" class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 id="result-title" class="text-3xl font-extrabold text-slate-800 mb-1">Level Completed!</h2>
+                <p id="result-subtitle" class="text-slate-500 text-sm">Great effort completing this challenge.</p>
+                
+                <!-- Score Breakdown Card -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 mt-6 shadow-md flex justify-around items-center">
+                    <div>
+                        <div class="text-xs text-slate-400 font-bold uppercase">Total Score</div>
+                        <div id="final-score" class="text-4xl font-black text-amber-400">0</div>
+                    </div>
+                    <div class="h-10 w-px bg-slate-700"></div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-bold uppercase">Accuracy</div>
+                        <div id="final-accuracy" class="text-4xl font-black text-brand-green">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocabulary Review List -->
+            <div class="mt-6 border-t border-slate-100 pt-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-bold text-slate-800 font-heading">
+                        <i class="fa-solid fa-book-open text-brand-purple mr-2"></i> Level Vocabulary Review
+                    </h3>
+                    <span class="text-xs text-slate-400 font-semibold">Click sound icon to listen</span>
+                </div>
+
+                <div id="vocab-review-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
+                    <!-- Dynamic review items -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+                <button id="next-level-btn" onclick="startGame(2)" class="px-7 py-3 bg-brand-purple hover:bg-indigo-600 text-white font-bold text-base rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    Start Level 2 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <button onclick="startGame(currentLevel)" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Replay Level
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 font-semibold">
+        Interactive English Learning Game &bull; Human Body (A2/B1)
+    </footer>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        // Vocabulary Databases
+        const VOCAB_LEVEL_1 = [
+            { id: 'head', word: 'Head', bg: 'глава', example: 'Wear a hat to keep your head warm.' },
+            { id: 'shoulder', word: 'Shoulder', bg: 'рамо', example: 'He carried his bag over his shoulder.' },
+            { id: 'knee', word: 'Knee', bg: 'коляно', example: 'She bent her knees to pick up the ball.' },
+            { id: 'toe', word: 'Toe', bg: 'пръст на крака', example: 'We have ten toes on our feet.' },
+            { id: 'elbow', word: 'Elbow', bg: 'лакът', example: 'Don\'t put your elbows on the table.' },
+            { id: 'wrist', word: 'Wrist', bg: 'китка', example: 'He wears a cool watch on his wrist.' },
+            { id: 'ankle', word: 'Ankle', bg: 'глезен', example: 'She twisted her ankle while running.' },
+            { id: 'chest', word: 'Chest', bg: 'гърди / гръден кош', example: 'Take a deep breath into your chest.' },
+            { id: 'back', word: 'Back', bg: 'гръб', example: 'Sit up straight to protect your back.' },
+            { id: 'stomach', word: 'Stomach', bg: 'стомах / корем', example: 'My stomach rumbles when I am hungry.' },
+            { id: 'neck', word: 'Neck', bg: 'врат / шия', example: 'Giraffes have very long necks.' },
+            { id: 'finger', word: 'Finger', bg: 'пръст на ръката', example: 'She points with her index finger.' },
+            { id: 'thumb', word: 'Thumb', bg: 'палец', example: 'Give a thumbs-up if you understand!' },
+            { id: 'heel', word: 'Heel', bg: 'пета', example: 'The back part of the foot is the heel.' },
+            { id: 'hip', word: 'Hip', bg: 'таз / бедро', example: 'Put your hands on your hips.' }
+        ];
+
+        const VOCAB_LEVEL_2 = [
+            { id: 'forehead', word: 'Forehead', bg: 'чело', example: 'He wiped the sweat from his forehead.' },
+            { id: 'chin', word: 'Chin', bg: 'брадичка', example: 'He rested his chin in his hand.' },
+            { id: 'collarbone', word: 'Collarbone', bg: 'ключица', example: 'The collarbone connects the arm to the body.' },
+            { id: 'rib', word: 'Rib', bg: 'ребро', example: 'Ribs protect your heart and lungs.' },
+            { id: 'waist', word: 'Waist', bg: 'талия', example: 'She wore a belt around her waist.' },
+            { id: 'thigh', word: 'Thigh', bg: 'бедро', example: 'Thigh muscles are very strong.' },
+            { id: 'calf', word: 'Calf', bg: 'прасец', example: 'His calves ached after the steep climb.' },
+            { id: 'shin', word: 'Shin', bg: 'пищял', example: 'Wear shin guards when playing football.' },
+            { id: 'palm', word: 'Palm', bg: 'длан', example: 'She held a coin in her open palm.' },
+            { id: 'knuckle', word: 'Knuckle', bg: 'кокалче на пръст', example: 'Knuckles flex when you make a fist.' },
+            { id: 'fingernail', word: 'Fingernail', bg: 'нокът на ръката', example: 'Keep your fingernails clean and short.' },
+            { id: 'sole', word: 'Sole', bg: 'стъпало / подметка', example: 'The sole of the shoe provides grip.' },
+            { id: 'spine', word: 'Spine', bg: 'гръбначен стълб', example: 'The spine supports your body structure.' },
+            { id: 'armpit', word: 'Armpit', bg: 'мишница', example: 'Hold the thermometer under your armpit.' },
+            { id: 'temple', word: 'Temple', bg: 'слепоочие', example: 'He rubbed his temples to soothe his headache.' }
+        ];
+
+        // Game State Variables
+        let currentLevel = 1;
+        let gameWords = [];
+        let currentIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let lives = 3;
+        let correctAnswersCount = 0;
+        let soundEnabled = true;
+        let canClick = true;
+        
+        // Timer
+        let timeLeft = 60;
+        let timerInterval = null;
+
+        // Tone.js Audio Setup with Softer Volumes (-12dB / -15dB)
+        let synth, polySynth;
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                // Soft volume synth
+                synth = new Tone.Synth({
+                    volume: -14,
+                    oscillator: { type: 'sine' }
+                }).toDestination();
+
+                polySynth = new Tone.PolySynth(Tone.Synth, {
+                    volume: -12,
+                    oscillator: { type: 'triangle' }
+                }).toDestination();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+
+                if (type === 'correct') {
+                    // Soft gentle pleasant chime
+                    polySynth.triggerAttackRelease(["E5", "B5"], "16n");
+                } else if (type === 'click') {
+                    // Very subtle quiet click sound
+                    synth.triggerAttackRelease("C4", "32n");
+                } else if (type === 'wrong') {
+                    // Sad descending tone for losing life
+                    polySynth.triggerAttackRelease(["E3", "C3"], "8n");
+                } else if (type === 'win') {
+                    polySynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n");
+                }
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+            }
+        }
+
+        // Improved Natural Voice Pronunciation via SpeechSynthesis
+        let preferredVoice = null;
+        function loadVoices() {
+            if ('speechSynthesis' in window) {
+                const voices = window.speechSynthesis.getVoices();
+                // Prefer high quality English voices (Google, Natural, Premium)
+                preferredVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel'))) 
+                              || voices.find(v => v.lang.startsWith('en'));
+            }
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+        }
+
+        function speakWord(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.88; // Slightly slower natural rate
+                utterance.pitch = 1.0;
+                if (preferredVoice) utterance.voice = preferredVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function speakCurrentWord() {
+            if (gameWords[currentIndex]) {
+                speakWord(gameWords[currentIndex].word);
+            }
+        }
+
+        function shuffle(array) {
+            return [...array].sort(() => Math.random() - 0.5);
+        }
+
+        // START GAME
+        function startGame(level = 1) {
+            currentLevel = level;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('flex');
+
+            // Switch hotspot layers based on level
+            if (level === 1) {
+                document.getElementById('level1-hotspots').classList.remove('hidden');
+                document.getElementById('level2-hotspots').classList.add('hidden');
+                document.getElementById('current-level-tag').innerText = 'Level 1';
+                document.getElementById('level-badge-header').innerText = 'English Level A2 • Level 1';
+                gameWords = shuffle(VOCAB_LEVEL_1);
+            } else {
+                document.getElementById('level1-hotspots').classList.add('hidden');
+                document.getElementById('level2-hotspots').classList.remove('hidden');
+                document.getElementById('current-level-tag').innerText = 'Level 2';
+                document.getElementById('level-badge-header').innerText = 'English Level B1 • Level 2';
+                gameWords = shuffle(VOCAB_LEVEL_2);
+            }
+
+            // Reset Game Stats
+            currentIndex = 0;
+            score = 0;
+            streak = 0;
+            lives = 3;
+            correctAnswersCount = 0;
+            timeLeft = 60;
+
+            updateHUD();
+            startTimer();
+            loadQuestion();
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        // TIMER LOGIC
+        function startTimer() {
+            clearInterval(timerInterval);
+            const timerEl = document.getElementById('timer-display');
+            timerEl.classList.remove('animate-timer-pulse');
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = `${timeLeft}s`;
+
+                if (timeLeft <= 10) {
+                    timerEl.classList.add('animate-timer-pulse');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    finishGame(false, "Time's up!");
+                }
+            }, 1000);
+        }
+
+        // LOAD QUESTION
+        function loadQuestion() {
+            canClick = true;
+            const currentItem = gameWords[currentIndex];
+            
+            document.getElementById('target-word').innerText = currentItem.word;
+            document.getElementById('question-counter').innerText = `${currentIndex + 1}/${gameWords.length}`;
+            
+            setTimeout(() => {
+                speakWord(currentItem.word);
+            }, 250);
+        }
+
+        // HANDLE HOTSPOT CLICK
+        function handlePartClick(partId) {
+            if (!canClick) return;
+
+            playSound('click');
+            const targetItem = gameWords[currentIndex];
+            const isCorrect = (partId === targetItem.id);
+
+            canClick = false;
+
+            if (isCorrect) {
+                playSound('correct');
+                streak++;
+                correctAnswersCount++;
+                const bonus = streak > 1 ? streak * 15 : 0;
+                const earned = 100 + bonus;
+                score += earned;
+
+                showFeedback(true, `Correct! +${earned} pts`);
+            } else {
+                lives--;
+                playSound('wrong');
+                streak = 0;
+                showFeedback(false, `Oops! That is not the ${targetItem.word}`);
+
+                if (lives <= 0) {
+                    clearInterval(timerInterval);
+                    setTimeout(() => {
+                        finishGame(false, "Out of Lives!");
+                    }, 1200);
+                    return;
+                }
+            }
+
+            updateHUD();
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < gameWords.length) {
+                    loadQuestion();
+                } else {
+                    clearInterval(timerInterval);
+                    finishGame(true, "Level Cleared!");
+                }
+            }, 1300);
+        }
+
+        function showFeedback(isCorrect, message) {
+            const banner = document.getElementById('feedback-banner');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden');
+
+            if (isCorrect) {
+                banner.className = 'absolute inset-0 flex items-center justify-center text-lg md:text-xl font-bold font-heading z-20 backdrop-blur-xs bg-emerald-500/20 text-emerald-800 transition-all duration-200';
+                textEl.className = 'px-6 py-2.5 rounded-2xl shadow-xl bg-emerald-500 text-white flex items-center gap-2 animate-bounce';
+                textEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+            } else {
+                banner.className = 'absolute inset-0 flex items-center justify-center text-lg md:text-xl font-bold font-heading z-20 backdrop-blur-xs bg-rose-500/20 text-rose-800 transition-all duration-200';
+                textEl.className = 'px-6 py-2.5 rounded-2xl shadow-xl bg-rose-500 text-white flex items-center gap-2';
+                textEl.innerHTML = `<i class="fa-solid fa-heart-crack"></i> ${message}`;
+            }
+
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 1100);
+        }
+
+        // UPDATE HUD
+        function updateHUD() {
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('streak-count').innerText = streak;
+
+            // Render Hearts
+            const livesContainer = document.getElementById('lives-container');
+            livesContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < lives) {
+                    livesContainer.innerHTML += `<i class="fa-solid fa-heart transition-transform scale-110"></i>`;
+                } else {
+                    livesContainer.innerHTML += `<i class="fa-regular fa-heart opacity-30"></i>`;
+                }
+            }
+        }
+
+        // END GAME
+        function finishGame(success, statusMessage) {
+            clearInterval(timerInterval);
+
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('end-screen').classList.remove('hidden');
+
+            const currentVocabList = currentLevel === 1 ? VOCAB_LEVEL_1 : VOCAB_LEVEL_2;
+            const accuracy = Math.round((correctAnswersCount / currentVocabList.length) * 100);
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-accuracy').innerText = `${accuracy}%`;
+
+            const resultTitle = document.getElementById('result-title');
+            const resultSubtitle = document.getElementById('result-subtitle');
+            const resultBadge = document.getElementById('result-badge');
+            const resultIcon = document.getElementById('result-icon');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+
+            if (success) {
+                playSound('win');
+                triggerConfetti();
+                resultTitle.innerText = `Level ${currentLevel} Completed!`;
+                resultSubtitle.innerText = `Awesome job! You answered with ${accuracy}% accuracy.`;
+                resultBadge.className = 'w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-sm';
+                resultIcon.className = 'fa-solid fa-trophy';
+
+                if (currentLevel === 1) {
+                    nextLevelBtn.classList.remove('hidden');
+                } else {
+                    nextLevelBtn.classList.add('hidden');
+                }
+            } else {
+                resultTitle.innerText = `Game Over - ${statusMessage}`;
+                resultSubtitle.innerText = `Don't give up! Try again to master Level ${currentLevel}.`;
+                resultBadge.className = 'w-20 h-20 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-sm';
+                resultIcon.className = 'fa-solid fa-heart-crack';
+                nextLevelBtn.classList.add('hidden');
+            }
+
+            // Render Vocabulary Review Grid
+            const reviewGrid = document.getElementById('vocab-review-grid');
+            reviewGrid.innerHTML = '';
+
+            currentVocabList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 border border-slate-200 p-2.5 rounded-2xl flex items-start justify-between hover:border-brand-purple transition';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-slate-800 capitalize text-sm">${item.word}</span>
+                            <span class="text-xs text-slate-400 font-semibold">(${item.bg})</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5 italic">"${item.example}"</p>
+                    </div>
+                    <button onclick="speakWord('${item.word}')" class="text-slate-400 hover:text-brand-purple p-1 transition">
+                        <i class="fa-solid fa-volume-high text-xs"></i>
+                    </button>
+                `;
+                reviewGrid.appendChild(card);
+            });
+        }
+
+        // CONFETTI ANIMATION
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = [];
+            const colors = ['#6C5CE7', '#FD79A8', '#FDCB6E', '#00B894', '#0984E3'];
+
+            for (let i = 0; i < 70; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 4 + 2,
+                    rotation: Math.random() * 360
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.y += p.speed;
+                    p.rotation += 2;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rotation * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+
+                if (pieces.some(p => p.y < canvas.height)) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animate();
+        }
+
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('confetti-canvas');
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
+    </script>
+</body>
+</html>
